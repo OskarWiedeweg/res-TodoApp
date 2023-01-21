@@ -4,6 +4,8 @@ import dev.oskarwiedeweg.todo_backend.user.TodoUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ToDoListService {
@@ -20,4 +22,7 @@ public class ToDoListService {
         return toDoList;
     }
 
+    public List<ToDoList> getTodoLists(TodoUser user) {
+        return repository.getAllByOwner(user);
+    }
 }
