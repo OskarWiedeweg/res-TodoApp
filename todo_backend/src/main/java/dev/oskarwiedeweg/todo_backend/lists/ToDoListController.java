@@ -1,7 +1,7 @@
 package dev.oskarwiedeweg.todo_backend.lists;
 
-import dev.oskarwiedeweg.todo_backend.lists.dto.ToDoCreationRequest;
-import dev.oskarwiedeweg.todo_backend.lists.dto.ToDoListResponse;
+import dev.oskarwiedeweg.todo_backend.lists.dto.*;
+import dev.oskarwiedeweg.todo_backend.lists.item.ToDoListItem;
 import dev.oskarwiedeweg.todo_backend.user.TodoUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -47,6 +48,33 @@ public class ToDoListController {
                             .build())
                     .toList();
             return ResponseEntity.ok(todoLists);
+        }
+
+        throw new IllegalStateException();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ToDoListDetail> getToDoList(@PathVariable UUID id, Authentication authentication) throws IllegalAccessException {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof TodoUser user) {
+            return ResponseEntity.ok(toDoListService.getToDoList(id, user));
+        }
+
+        throw new IllegalStateException();
+    }
+
+    @PostMapping("/{id}")
+    public ResponseEntity<ToDoListItemResponse> createItem(@PathVariable UUID id,
+                                                           @RequestBody @Valid ToDoItemCreationRequest request,
+                                                           Authentication authentication) throws IllegalAccessException {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof TodoUser user) {
+            ToDoListItem toDoListItem = toDoListService.createToDoListItem(id, request, user);
+            return ResponseEntity.ok(ToDoListItemResponse.builder()
+                            .type(toDoListItem.getType())
+                            .content(toDoListItem.getContent())
+                            .id(toDoListItem.getId())
+                    .build());
         }
 
         throw new IllegalStateException();
