@@ -3,6 +3,7 @@ package dev.oskarwiedeweg.todo_backend.lists;
 import dev.oskarwiedeweg.todo_backend.lists.dto.ToDoItemCreationRequest;
 import dev.oskarwiedeweg.todo_backend.lists.dto.ToDoListDetail;
 import dev.oskarwiedeweg.todo_backend.lists.dto.ToDoListItemResponse;
+import dev.oskarwiedeweg.todo_backend.lists.item.ItemStatus;
 import dev.oskarwiedeweg.todo_backend.lists.item.ToDoListItem;
 import dev.oskarwiedeweg.todo_backend.lists.item.ToDoListItemRepository;
 import dev.oskarwiedeweg.todo_backend.user.TodoUser;
@@ -46,6 +47,7 @@ public class ToDoListService {
                                 .id(item.getId())
                                 .content(item.getContent())
                                 .type(item.getType())
+                                .status(item.getStatus())
                                 .build())
                         .toList())
                 .build();
@@ -62,6 +64,7 @@ public class ToDoListService {
                 .list(toDoList)
                 .content(request.getContent())
                 .type(request.getType())
+                .status(ItemStatus.TODO)
                 .build();
 
         toDoList.getToDoListItems().add(item);
