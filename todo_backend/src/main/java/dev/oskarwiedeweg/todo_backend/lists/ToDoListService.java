@@ -1,6 +1,7 @@
 package dev.oskarwiedeweg.todo_backend.lists;
 
 import dev.oskarwiedeweg.todo_backend.lists.dto.ToDoItemCreationRequest;
+import dev.oskarwiedeweg.todo_backend.lists.dto.ToDoItemPatchRequest;
 import dev.oskarwiedeweg.todo_backend.lists.dto.ToDoListDetail;
 import dev.oskarwiedeweg.todo_backend.lists.dto.ToDoListItemResponse;
 import dev.oskarwiedeweg.todo_backend.lists.item.ItemStatus;
@@ -8,7 +9,9 @@ import dev.oskarwiedeweg.todo_backend.lists.item.ToDoListItem;
 import dev.oskarwiedeweg.todo_backend.lists.item.ToDoListItemRepository;
 import dev.oskarwiedeweg.todo_backend.user.TodoUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -34,10 +37,10 @@ public class ToDoListService {
         return repository.getAllByOwner(user);
     }
 
-    public ToDoListDetail getToDoList(UUID id, TodoUser user) throws IllegalAccessException {
+    public ToDoListDetail getToDoList(UUID id, TodoUser user) {
         ToDoList toDoList = repository.findById(id).orElseThrow();
         if (!toDoList.getOwner().equals(user)) {
-            throw new IllegalAccessException();
+            throwUnauthorizedException();
         }
         return ToDoListDetail.builder()
                 .id(toDoList.getId())
@@ -53,11 +56,11 @@ public class ToDoListService {
                 .build();
     }
 
-    public ToDoListItem createToDoListItem(UUID toDoListId, ToDoItemCreationRequest request, TodoUser user) throws IllegalAccessException {
+    public ToDoListItem createToDoListItem(UUID toDoListId, ToDoItemCreationRequest request, TodoUser user) {
         ToDoList toDoList = repository.findById(toDoListId).orElseThrow();
 
         if (!toDoList.getOwner().equals(user)) {
-            throw new IllegalAccessException();
+            throwUnauthorizedException();
         }
 
         ToDoListItem item = ToDoListItem.builder()
@@ -72,5 +75,50 @@ public class ToDoListService {
         repository.save(toDoList);
 
         return item;
+    }
+
+    public void deleteItem(UUID list, UUID item, TodoUser user) {
+        ToDoListItem toDoListItem = itemRepository.findById(item).orElseThrow();
+        ToDoList toDoList = repository.findById(list).orElseThrow();
+
+        if (!toDoList.getOwner().equals(user)) {
+            throwUnauthorizedException();
+        }
+
+        toDoList.getToDoListItems().remove(toDoListItem);
+
+        itemRepository.delete(toDoListItem);
+        repository.save(toDoList);
+    }
+
+    public ToDoListItem patchItem(UUID list, UUID item, ToDoItemPatchRequest request, TodoUser user) {
+        ToDoListItem toDoListItem = itemRepository.findById(item).orElseThrow();
+
+        if (!toDoListItem.getList().getId().equals(list)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no item '%s' in '%s'!");
+        }
+
+        if (!toDoListItem.getList().getOwner().equals(user)) {
+            throwUnauthorizedException();
+        }
+
+        if (request.getStatus() != null) {
+            toDoListItem.setStatus(request.getStatus());
+        }
+
+        if (request.getItemType() != null) {
+            toDoListItem.setType(request.getItemType());
+        }
+
+        if (request.getContent() != null) {
+            toDoListItem.setContent(request.getContent());
+        }
+
+        itemRepository.save(toDoListItem);
+        return toDoListItem;
+    }
+
+    private void throwUnauthorizedException() {
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You don't have access to this list!");
     }
 }

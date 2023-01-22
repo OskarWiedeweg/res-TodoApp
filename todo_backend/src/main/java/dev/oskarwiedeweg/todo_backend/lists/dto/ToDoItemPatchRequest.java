@@ -7,17 +7,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ToDoListItemResponse {
+public class ToDoItemPatchRequest {
 
-    private UUID id;
-    private ItemType type;
-    private String content;
     private ItemStatus status;
+    private ItemType itemType;
+    private String content;
 
 }

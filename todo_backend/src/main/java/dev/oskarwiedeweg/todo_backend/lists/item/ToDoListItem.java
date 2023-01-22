@@ -34,4 +34,7 @@ public class ToDoListItem {
 
     private String content;
 
+    @Enumerated(EnumType.STRING)
+    private ItemStatus status;
+
 }

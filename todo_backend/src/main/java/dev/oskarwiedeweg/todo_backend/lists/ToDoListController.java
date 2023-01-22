@@ -11,9 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -73,10 +71,40 @@ public class ToDoListController {
             return ResponseEntity.ok(ToDoListItemResponse.builder()
                             .type(toDoListItem.getType())
                             .content(toDoListItem.getContent())
+                            .status(toDoListItem.getStatus())
                             .id(toDoListItem.getId())
                     .build());
         }
 
+        throw new IllegalStateException();
+    }
+
+    @DeleteMapping("/{list}/{item}")
+    public void deleteItem(@PathVariable UUID list,
+                           @PathVariable UUID item,
+                           Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof TodoUser user) {
+            toDoListService.deleteItem(list, item, user);
+        }
+        throw new IllegalStateException();
+    }
+
+    @PatchMapping("/{list}/{item}")
+    public ResponseEntity<ToDoListItemResponse> patchItem(@PathVariable UUID list,
+                                                  @PathVariable UUID item,
+                                                  @RequestBody ToDoItemPatchRequest request,
+                                                  Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof TodoUser user) {
+            ToDoListItem toDoListItem = toDoListService.patchItem(list, item, request, user);
+            return ResponseEntity.ok(ToDoListItemResponse.builder()
+                    .id(toDoListItem.getId())
+                    .content(toDoListItem.getContent())
+                    .type(toDoListItem.getType())
+                    .status(toDoListItem.getStatus())
+                    .build());
+        }
         throw new IllegalStateException();
     }
 

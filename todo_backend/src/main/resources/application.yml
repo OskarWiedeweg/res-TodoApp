@@ -16,3 +16,6 @@ jwt:
   secret: "ZGlzY3Vzc2lvbnJlZ2lvbmFueWJhc2ljcGFja2NvbnRyYXN0bGl0dGxlbG91ZG5haWw="
   issuer: "Todo Application"
   expiration_time: 1000000
+server:
+  error:
+    include-message: always
